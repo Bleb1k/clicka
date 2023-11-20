@@ -1,14 +1,12 @@
 /* Positioning and styling the switch container */
-.switch {
+.light-mode-toggle {
 	position: absolute;
-	right: 15px;
-	top: 15px;
 	width: 60px;
 	height: 34px;
 }
 
 /* Hide default HTML checkbox */
-.switch input {
+.light-mode-toggle input {
 	opacity: 0;
 	width: 0;
 	height: 0;
@@ -22,7 +20,7 @@
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background-color: #ccc;
+	background-color: var(--base-color);
 	transition: .4s;
 }
 
@@ -39,16 +37,12 @@
 	width: 26px;
 	left: 4px;
 	bottom: 4px;
-	background-color: white;
+	background-color: var(--slider-pin-color);
 	transition: .4s;
 	border-radius: 50%;
 }
 
-/* The slide - changes the color and moves the slider */
-input:checked+.slider {
-	background-color: #2196F3;
-}
-
+/* Slider - moves the slider */
 input:checked+.slider:before {
 	transform: translateX(26px);
 }

@@ -1,10 +1,9 @@
-.movableTile {
+.tile {
 	width: 200px;
 	height: 200px;
 	/* background-color: var(--base-background-color);
 	color: var(--base-color); */
 	position: absolute;
-	cursor: move;
 	border-radius: 8px;
 	box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5);
 	overflow: hidden;

@@ -1,4 +1,4 @@
-let tiles = Array.from(document.getElementsByClassName('movableTile'));
+let tiles = Array.from(document.getElementsByClassName('tile'));
 (() => {
 	let zIndex = 0
 	tiles.forEach((i) => {
