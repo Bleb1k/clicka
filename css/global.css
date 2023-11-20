@@ -1,0 +1,17 @@
+:root {
+	--base-background-color: #262626;
+	--base-color: #f3f3f3;
+	--header-background-color: #600060;
+	--header-color: #ffffff;
+	--content-color: #f3f3f3;
+}
+
+body {
+	background-color: var(--base-background-color);
+	color: var(--base-color);
+}
+
+div {
+	background-color: var(--base-background-color);
+	color: var(--base-color);
+}

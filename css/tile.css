@@ -1,0 +1,28 @@
+.movableTile {
+	width: 200px;
+	height: 200px;
+	/* background-color: var(--base-background-color);
+	color: var(--base-color); */
+	position: absolute;
+	cursor: move;
+	border-radius: 8px;
+	box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5);
+	overflow: hidden;
+}
+
+.header {
+	padding: 10px;
+	background-color: var(--header-background-color);
+	color: var(--header-color);
+	cursor: move;
+	user-select: none;
+	font-weight: bold;
+	border-bottom: 1px solid #888;
+}
+
+.content {
+	padding: 20px;
+	height: 150px;
+	overflow: auto;
+	color: var(--content-color);
+}
