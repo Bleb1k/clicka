@@ -18,18 +18,14 @@ function setDarkModeStyles() {
 	document.documentElement.style.setProperty('--slider-pin-color', '#dfb9ea');
 }
 
-(() => {
-	let toggle = document.getElementsByClassName('light-mode-toggle')[0]
-	toggle.addEventListener('change', function (event) {
-		if (event.target.checked) {
-			setLightModeStyles();
-		} else {
-			setDarkModeStyles();
-		}
-	})
-	if (toggle.firstElementChild.checked) {
+document.getElementById('light-mode-toggle').addEventListener('click', function () {
+	var button = this;
+	button.classList.toggle('sun');
+	if (button.classList.contains('sun')) {
 		setLightModeStyles();
+		button.innerHTML = '<i class="fas fa-sun" style="background-color: transparent;"></i>';
 	} else {
 		setDarkModeStyles();
+		button.innerHTML = '<i class="fas fa-moon" style="background-color: transparent;"></i>';
 	}
-})()
+});

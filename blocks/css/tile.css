@@ -21,7 +21,7 @@
 
 .content {
 	padding: 20px;
-	height: 150px;
+	height: calc(100% - 80px);
 	overflow: auto;
 	color: var(--content-color);
 }
