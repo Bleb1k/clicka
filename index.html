@@ -1,44 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-	<title>Clicka</title>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-	<link rel="stylesheet" type="text/css" href="blocks/css/temp.css">
-	<link rel="stylesheet" type="text/css" href="blocks/css/tile.css">
-	<link rel="stylesheet" type="text/css" href="blocks/css/global.css">
-	<link rel="stylesheet" type="text/css" href="blocks/css/settings.css">
-	<link rel="stylesheet" type="text/css" href="blocks/css/light-mode-toggle.css">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+
+	<link rel="stylesheet" href="./style.css">
+
+	<script src="./src/main.js" type="module"></script>
 </head>
 
 <body>
-
-	<div id="settings-cog">
-		<i class="fas fa-cog fa-2x" style="background-color: transparent;"></i>
-	</div>
-	<div id="settings-menu" class="tile settings-menu-hidden">
-		<div id="settings-header" class="header">
-			Settings
-			<button id="light-mode-toggle">
-				<i class="fas fa-moon" style="background-color: transparent;"></i>
-			</button>
-		</div>
-		<div class="content">
-
-		</div>
-	</div>
-	<div class="tile" style="width: 300px; height: 300px;">
-		<div class="header">Clicka</div>
-		<div class="content">Content goes here</div>
-	</div>
-	<div class="tile">
-		<div class="header">Stats</div>
-		<div class="content">Content goes here</div>
-	</div>
-	<script src="blocks/js/temp.js"></script>
-	<script src="blocks/js/tile.js"></script>
-	<script src="blocks/js/settings.js"></script>
-	<script src="blocks/js/light-mode-toggle.js"></script>
+	<canvas id="canvas"></canvas>
+	<div id="gui"></div>
 </body>
 
 </html>
