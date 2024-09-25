@@ -1,17 +1,16 @@
 /// <reference types="../types/renderer.d.ts" />
 
-
-
 export default class Renderer {
 	/** @type {HTMLElement} */
 	static #globalTarget = document.body
 	/** @type {HTMLElement} */
-	#target;
+	#target
 	/** @type {CanvasRenderingContext2D} */
 	static #globalContext = document.createElement("canvas").getContext("2d")
 	/** @type {CanvasRenderingContext2D} */
-	#context;
+	#context
 	/** @arg {RendererOptions} options */
+
 	constructor(options = {}) {
 		this.#target = options.target || Renderer.#globalTarget
 		this.#context = options.context || Renderer.#globalContext
@@ -33,17 +32,26 @@ export default class Renderer {
  */
 export class Color {
 	/** @arg {number} num @returns {ColorStyle} */
-	static hex(num) { return '#' + num.toString(16).padStart(3, "f") }
+	static hex(num) {
+		return "#" + num.toString(16).padStart(3, "f")
+	}
 	/** numbers in range: 0-255 @arg {number} r @arg {number} g @arg {number} b @returns {ColorStyle} */
-	static rgb(r, g, b) { return `rgb(${r},${g},${b})` }
+	static rgb(r, g, b) {
+		return `rgb(${r},${g},${b})`
+	}
 	/** numbers in range: 0-255 @arg {number} r @arg {number} g @arg {number} b @returns {ColorStyle} */
-	static rgba(r, g, b, a) { return `rgba(${r},${g},${b},${a})` }	/**
+	static rgba(r, g, b, a) {
+		return `rgba(${r},${g},${b},${a})`
+	}
+	/**
 	 * @param {number} h Hue in degrees
 	 * @param {number} s Saturation in percent
 	 * @param {number} l Lightness in percent
 	 * @returns {ColorStyle}
 	 */
-	static shl(h, s, l) { return `hsl(${h},${s}%,${l}%)` }
+	static shl(h, s, l) {
+		return `hsl(${h},${s}%,${l}%)`
+	}
 	/**
 	 * @param {number} h Hue in degrees
 	 * @param {number} s Saturation in percent
@@ -51,7 +59,9 @@ export class Color {
 	 * @param {number} a Alpha in percent
 	 * @returns {ColorStyle}
 	 */
-	static shla(h, s, l, a) { return `hsla(${h},${s}%,${l}%,${a})` }
+	static shla(h, s, l, a) {
+		return `hsla(${h},${s}%,${l}%,${a})`
+	}
 
 	static ERROR = "#80f"
 	static RAYWHITE = "#fafafa"
@@ -202,6 +212,4 @@ export class Color {
 	static WHITE_SMOKE = "whitesmoke"
 	static YELLOW = "yellow"
 	static YELLOW_GREEN = "yellowgreen"
-
-
 }
