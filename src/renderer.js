@@ -71,6 +71,35 @@ export default class Renderer {
 		this.#ctx.fillRect(0, 0, this.#ctx.canvas.width, this.#ctx.canvas.height)
 	}
 
+	/**
+	 * @param {Object} options
+	 * @param {ColorStyle} options.color
+	 * @param {number} options.size
+	 * @param {string} options.font
+	 */
+	textStyle(options = {}) {
+		this.#ctx.fillStyle = options.color
+
+		if (isDefined(options.size)) this.#ctx.font = `${options.size}pt ${options.font}`
+		else if (isDefined(options.font))
+			this.#ctx.font = this.#ctx.font.replace(/(?<value>[a-zA-Z\-\_]+$)/, options.font)
+		else if (isDefined(options.size))
+			this.#ctx.font = this.#ctx.font.replace(/(?<value>\d+\.?\d*)/, options.size)
+	}
+
+	/**
+	 * Sets the text color of the renderer, and prepares the canvas context for the next call to textString.
+	 * @param {Object} options
+	 * @param {string} options.text
+	 * @param {Vec2} options.pivot
+	 */
+	text(options = {}) {
+		this.#ctx.textBaseline = "top"
+		this.#ctx.textAlign = "left"
+
+		this.#ctx.fillText(options.text, options.pivot.x, options.pivot.y)
+	}
+
 	// ---------- MISC FUNCTIONS ---------- //
 
 	/**
@@ -124,7 +153,7 @@ export default class Renderer {
 		return {
 			width: this.#ctx.canvas.width,
 			height: this.#ctx.canvas.height,
-			dt: Math.max(this.#time - (this.#time = Date.now() / 1000), 1 / 60),
+			dt: Math.min(-this.#time + (this.#time = Date.now() / 1000), 1),
 		}
 	}
 }

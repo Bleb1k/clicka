@@ -17,6 +17,11 @@ const state = {
 	],
 }
 
+document.fonts.add(new FontFace("test", "url(assets/F77MinecraftRegular.woff)"))
+document.fonts.ready.then(() => {
+	console.log("font loaded")
+})
+
 const render = new Renderer({
 	context: document.getElementById("canvas").getContext("2d"),
 	initialSize: {
@@ -25,9 +30,16 @@ const render = new Renderer({
 	},
 })
 
+render.textStyle({ font: "test", size: 12, color: Color.BLACK })
+
 render.loop(info => {
-	render.background({ color: Color.RAYWHITE })
+	render.background()
+
 	for (const platform of state.platforms) {
 		render.square({ ...platform })
 	}
+
+	render.text({ text: `FPS: ${(1 / info.dt).toFixed(0)}`, pivot: { x: 10, y: 10 } })
 })
+
+// this becomes cluttered fast, no structure, no goal... I need to go sleep...
