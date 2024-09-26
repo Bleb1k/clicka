@@ -1,6 +1,6 @@
 /// <reference types="../types/helpers.d.ts" />
 
-const iota = (() => {
+export const iota = (() => {
 	let count = 0
 	return () => count++
 })() // like in go
@@ -14,6 +14,11 @@ export function pipe(...fns) {
 }
 
 /**
+ * @example
+ * // iota is exported while below has broken autocomplete
+ * const a = _enum({ foo: iota(), bar: iota(), baz: iota() })
+ * // the same as above, but breaks autocomplete
+ * const b = _enum("foo", "bar", "baz")
  * @template T
  * @param {T} arr
  * @returns {Enum<T>}
@@ -36,7 +41,3 @@ export function _enum(...arr) {
 		)
 	)
 }
-
-// const a = _enum({ foo: 0, bar: 1, baz: 2 })
-const a = _enum("foo", "bar", "baz")
-console.log(a)
