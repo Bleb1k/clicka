@@ -11,8 +11,8 @@ export default class Renderer {
 	static #globalContext = document.createElement("canvas").getContext("2d")
 	/** @type {CanvasRenderingContext2D} */
 	#ctx
-	/** @arg {RendererOptions} options */
 
+	/** @param {RendererOptions} options */
 	constructor(options = {}) {
 		this.#target = options.target || Renderer.#globalTarget
 		this.#ctx = options.context || Renderer.#globalContext
@@ -20,27 +20,84 @@ export default class Renderer {
 		this.#target.appendChild(this.#ctx.canvas)
 	}
 
+	// ---------- RENDERING FUNCTIONS ---------- //
+
 	/**
 	 * Draws a square
-	 *
-	 * @arg {Square} arg
+	 * @arg {Square} options
 	 */
-	square(arg = { color: Color.ERROR }) {
-		if (!arg.fillColor || !arg.borderColor) return
+	square(options = {}) {
+		if (!options.fillColor && !options.borderColor) return
 
-		this.#ctx.translate(arg.pivot.x, arg.pivot.y)
-		if (isDefined(arg.rotation)) this.#ctx.rotate(arg.rotation)
+		this.#ctx.translate(options.center.x, options.center.y)
 
-		if (isDefined(arg.fillColor)) {
-			this.#ctx.fillStyle = arg.color
-			this.#ctx.fillRect(-arg.size.x / 2, -arg.size.y / 2, arg.size.x, arg.size.y)
+		if (isDefined(options.rotation)) this.#ctx.rotate(options.rotation)
+		if (isDefined(options.fillColor)) {
+			this.#ctx.fillStyle = options.fillColor
+			this.#ctx.fillRect(
+				options.size.x * -0.5,
+				options.size.y * -0.5,
+				options.size.x,
+				options.size.y
+			)
 		}
-		if (isDefined(arg.borderColor)) {
-			this.#ctx.strokeStyle = arg.border
-			this.#ctx.strokeRect(-arg.size.x / 2, -arg.size.y / 2, arg.size.x, arg.size.y)
+		if (isDefined(options.borderColor)) {
+			this.#ctx.strokeStyle = options.borderColor
+			this.#ctx.strokeRect(
+				options.size.x * -0.5,
+				options.size.y * -0.5,
+				options.size.x,
+				options.size.y
+			)
 		}
 
-		ctx.setTransform(1, 0, 0, 1, 0, 0)
+		this.#ctx.setTransform(1, 0, 0, 1, 0, 0)
+	}
+
+	/**
+	 *
+	 * @param {Object} options
+	 * @param {ColorStyle} options.color
+	 */
+	background(options = { color: Color.RAYWHITE }) {
+		this.#ctx.fillStyle = options.color
+		this.#ctx.fillRect(0, 0, this.#ctx.canvas.width, this.#ctx.canvas.height)
+	}
+
+	// ---------- MISC FUNCTIONS ---------- //
+
+	/**
+	 * Resizes the canvas to the given size, and optionally the parent element to the given size
+	 * @param {Object} options
+	 * @param {boolean} options.withTarget - If true, resizes the parent element as well
+	 * @param {Vec2} options.pivot - Position of the top left of the canvas
+	 * @param {Vec2} options.size - Size of the canvas
+	 */
+	resize(options = {}) {
+		if (!options.pivot || !options.size) return
+		if (options.withTarget) {
+			this.#target.style.position = "absolute"
+			this.#target.style.left = options.pivot.x
+			this.#target.style.top = options.pivot.y
+			this.#target.style.width = options.size.x
+			this.#target.style.height = options.size.y
+		}
+		this.#ctx.canvas.style.position = "absolute"
+		this.#ctx.canvas.style.left = options.pivot.x
+		this.#ctx.canvas.style.top = options.pivot.y
+		this.#ctx.canvas.style.width = options.size.x
+		this.#ctx.canvas.style.height = options.size.y
+
+		this.#ctx.canvas.width = options.size.x
+		this.#ctx.canvas.height = options.size.y
+	}
+
+	/** @returns {RendererInfo} */
+	get info() {
+		return {
+			width: this.#ctx.canvas.width,
+			height: this.#ctx.canvas.height,
+		}
 	}
 }
 
