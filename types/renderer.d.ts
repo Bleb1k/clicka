@@ -20,5 +20,6 @@ interface Square {
 	rotation?: Vec2
 	fillColor?: ColorStyle
 	borderColor?: ColorStyle
+	borderSize?: number
 }
 

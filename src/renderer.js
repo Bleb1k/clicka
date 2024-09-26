@@ -4,18 +4,14 @@ import { isDefined } from "./helpers.js"
 
 export default class Renderer {
 	/** @type {HTMLElement} */
-	static #globalTarget = document.body
-	/** @type {HTMLElement} */
 	#target
-	/** @type {CanvasRenderingContext2D} */
-	static #globalContext = document.createElement("canvas").getContext("2d")
 	/** @type {CanvasRenderingContext2D} */
 	#ctx
 
 	/** @param {RendererOptions} options */
 	constructor(options = {}) {
-		this.#target = options.target || Renderer.#globalTarget
-		this.#ctx = options.context || Renderer.#globalContext
+		this.#target = options.target || document.body
+		this.#ctx = options.context || document.createElement("canvas").getContext("2d")
 
 		this.#target.appendChild(this.#ctx.canvas)
 	}
@@ -43,6 +39,7 @@ export default class Renderer {
 		}
 		if (isDefined(options.borderColor)) {
 			this.#ctx.strokeStyle = options.borderColor
+			this.#ctx.lineWidth = options.borderSize || 2.5
 			this.#ctx.strokeRect(
 				options.size.x * -0.5,
 				options.size.y * -0.5,
