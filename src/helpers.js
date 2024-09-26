@@ -1,9 +1,9 @@
 /// <reference types="../types/helpers.d.ts" />
 
-const enumItem = (() => {
+const iota = (() => {
 	let count = 0
 	return () => count++
-})()
+})() // like in go
 
 export function isDefined(val) {
 	return val !== undefined && val !== null
@@ -28,7 +28,7 @@ export function _enum(...arr) {
 						[b, a],
 				  ])
 				: arr
-						.map(a => [a, enumItem()])
+						.map(a => [a, iota()])
 						.flatMap(([a, b]) => [
 							[a, b],
 							[b, a],
