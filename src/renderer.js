@@ -8,12 +8,22 @@ export default class Renderer {
 	/** @type {CanvasRenderingContext2D} */
 	#ctx
 
+	/** @type {number} */
+	#time = Date.now()
+	/**
+	 * Request ID of the current animation frame.
+	 * @type {number}
+	 */
+	#animationFrameRequest
+
 	/** @param {RendererOptions} options */
 	constructor(options = {}) {
 		this.#target = options.target || document.body
 		this.#ctx = options.context || document.createElement("canvas").getContext("2d")
 
 		this.#target.appendChild(this.#ctx.canvas)
+
+		if (options.initialSize) this.resize(options.initialSize)
 	}
 
 	// ---------- RENDERING FUNCTIONS ---------- //
@@ -64,6 +74,26 @@ export default class Renderer {
 	// ---------- MISC FUNCTIONS ---------- //
 
 	/**
+	 * @param {(info: RendererInfo) => void} [fn]
+	 * Calls the given function once per frame, passing the renderer's info to it.\
+	 * The function passed should not block the main thread, as it will be called
+	 * as often as the browser can render frames.
+	 * @returns {() => void} a function that will cancel the animation frame request when called.
+	 */
+	loop(fn) {
+		const innerLoop = () => {
+			fn(this.info)
+			this.#animationFrameRequest = requestAnimationFrame(innerLoop)
+		}
+		innerLoop()
+	}
+
+	stopLoop() {
+		cancelAnimationFrame(this.#animationFrameRequest)
+		this.#animationFrameRequest = undefined
+	}
+
+	/**
 	 * Resizes the canvas to the given size, and optionally the parent element to the given size
 	 * @param {Object} options
 	 * @param {boolean} options.withTarget - If true, resizes the parent element as well
@@ -94,6 +124,7 @@ export default class Renderer {
 		return {
 			width: this.#ctx.canvas.width,
 			height: this.#ctx.canvas.height,
+			dt: Math.max(this.#time - (this.#time = Date.now() / 1000), 1 / 60),
 		}
 	}
 }
@@ -104,36 +135,54 @@ export default class Renderer {
  * Or create your own css color string manually
  */
 export class Color {
-	/** @arg {number} num @returns {ColorStyle} */
+	/**
+	 * @arg {number} num
+	 * @returns {ColorStyle}
+	 */
 	static hex(num) {
 		return "#" + num.toString(16).padStart(3, "f")
 	}
-	/** numbers in range: 0-255 @arg {number} r @arg {number} g @arg {number} b @returns {ColorStyle} */
+
+	/**
+	 * @arg {number} r
+	 * @arg {number} g
+	 * @arg {number} b
+	 * @returns {ColorStyle}
+	 */
 	static rgb(r, g, b) {
 		return `rgb(${r},${g},${b})`
 	}
-	/** numbers in range: 0-255 @arg {number} r @arg {number} g @arg {number} b @returns {ColorStyle} */
-	static rgba(r, g, b, a) {
-		return `rgba(${r},${g},${b},${a})`
-	}
+
 	/**
-	 * @param {number} h Hue in degrees
-	 * @param {number} s Saturation in percent
-	 * @param {number} l Lightness in percent
+	 * @arg {number} r
+	 * @arg {number} g
+	 * @arg {number} b
+	 * @arg {number} a
+	 * @returns {ColorStyle}
+	 */
+	static rgba(r, g, b, a) {
+		return `rgba(${r},${g},${b},${a || 1})`
+	}
+
+	/**
+	 * @param {number} h
+	 * @param {number} s
+	 * @param {number} l
 	 * @returns {ColorStyle}
 	 */
 	static shl(h, s, l) {
 		return `hsl(${h},${s}%,${l}%)`
 	}
+
 	/**
-	 * @param {number} h Hue in degrees
-	 * @param {number} s Saturation in percent
-	 * @param {number} l Lightness in percent
-	 * @param {number} a Alpha in percent
+	 * @param {number} h
+	 * @param {number} s
+	 * @param {number} l
+	 * @param {number} a
 	 * @returns {ColorStyle}
 	 */
 	static shla(h, s, l, a) {
-		return `hsla(${h},${s}%,${l}%,${a})`
+		return `hsla(${h},${s}%,${l}%,${a || 1})`
 	}
 
 	static ERROR = "#80F"
