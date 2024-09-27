@@ -28,11 +28,8 @@ export default class Renderer {
 
 	// ---------- RENDERING FUNCTIONS ---------- //
 
-	/**
-	 * Draws a square
-	 * @arg {Square} options
-	 */
-	square(options = {}) {
+	/** @arg {Rectangle} options */
+	rectangle(options = {}) {
 		if (!options.fillColor && !options.borderColor) return
 
 		this.#ctx.translate(options.center.x, options.center.y)
@@ -61,8 +58,44 @@ export default class Renderer {
 		this.#ctx.setTransform(1, 0, 0, 1, 0, 0)
 	}
 
+	/** @param {Square} options */
+	square({ size, ...rest } = {}) {
+		this.rectangle({
+			...rest,
+			size: { x: size, y: size },
+		})
+	}
+
+	/** @param {Path} options */
+	path(options = {}) {
+		if (!options.points) return
+
+		this.#ctx.strokeStyle = options.color
+		this.#ctx.lineWidth = options.width || 2.5
+
+		this.#ctx.beginPath()
+		this.#ctx.moveTo(options.points[0].x, options.points[0].y)
+		for (
+			let i = 1, point = options.points[1];
+			i < options.points.length;
+			i++, point = options.points[i]
+		)
+			this.#ctx.lineTo(point.x, point.y)
+		this.#ctx.stroke()
+	}
+
+	/** @param {Line} options */
+	line(options = {}) {
+		this.#ctx.strokeStyle = options.color
+		this.#ctx.lineWidth = options.width || 2.5
+
+		this.#ctx.beginPath()
+		this.#ctx.moveTo(options.start.x, options.start.y)
+		this.#ctx.lineTo(options.end.x, options.end.y)
+		this.#ctx.stroke()
+	}
+
 	/**
-	 *
 	 * @param {Object} options
 	 * @param {ColorStyle} options.color
 	 */
@@ -148,6 +181,11 @@ export default class Renderer {
 
 		this.#ctx.canvas.width = options.size.x
 		this.#ctx.canvas.height = options.size.y
+	}
+
+	/** @param {boolean} value */
+	set smoothing(value) {
+		this.#ctx.imageSmoothingEnabled = value
 	}
 
 	/** @returns {RendererInfo} */

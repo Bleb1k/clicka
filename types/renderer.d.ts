@@ -25,7 +25,8 @@ interface TextStyle {
 	font?: string
 }
 
-interface Square {
+interface Rectangle {
+	type: "rectangle"
 	center: Vec2
 	size: Vec2
 	rotation?: number
@@ -34,15 +35,29 @@ interface Square {
 	borderSize?: number
 }
 
+interface Square {
+	type: "square"
+	center: Vec2
+	size: number
+	rotation?: number
+	fillColor?: ColorStyle
+	borderColor?: ColorStyle
+	borderSize?: number
+}
+
 interface Line {
+	type: "line"
 	start: Vec2
 	end: Vec2
-	color?: ColorStyle
+	color: ColorStyle
 	width?: number
 }
 
 interface Path {
+	type: "path"
 	points: Vec2[]
-	color?: ColorStyle
+	color: ColorStyle
 	width?: number
 }
+
+type Shape = Line | Path | Rectangle | Square
