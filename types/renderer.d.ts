@@ -14,13 +14,16 @@ type ResizeOptions = {
 interface RendererInfo {
 	width: number
 	height: number
+	dt: number
 }
 
-interface Vec2 {
-	x: number
-	y: number
-}
 type ColorStyle = string | CanvasGradient | CanvasPattern
+
+interface TextStyle {
+	color?: ColorStyle
+	size?: number
+	font?: string
+}
 
 interface Square {
 	center: Vec2

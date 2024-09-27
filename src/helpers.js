@@ -5,6 +5,8 @@ export const iota = (() => {
 	return () => count++
 })() // like in go
 
+export const $ = document.querySelector.bind(document)
+
 export function isDefined(val) {
 	return val !== undefined && val !== null
 }
@@ -24,7 +26,6 @@ export function pipe(...fns) {
  * @returns {Enum<T>}
  */
 export function _enum(...arr) {
-	console.log(Object.entries(arr))
 	return Object.freeze(
 		Object.fromEntries(
 			arr.length === 1 && typeof arr[0] === "object"

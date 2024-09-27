@@ -72,10 +72,7 @@ export default class Renderer {
 	}
 
 	/**
-	 * @param {Object} options
-	 * @param {ColorStyle} options.color
-	 * @param {number} options.size
-	 * @param {string} options.font
+	 * @param {TextStyle} [options]
 	 */
 	textStyle(options = {}) {
 		this.#ctx.fillStyle = options.color
@@ -92,10 +89,13 @@ export default class Renderer {
 	 * @param {Object} options
 	 * @param {string} options.text
 	 * @param {Vec2} options.pivot
+	 * @param {TextStyle} options.style
 	 */
 	text(options = {}) {
 		this.#ctx.textBaseline = "top"
 		this.#ctx.textAlign = "left"
+
+		if (isDefined(options.style)) this.textStyle(options.style)
 
 		this.#ctx.fillText(options.text, options.pivot.x, options.pivot.y)
 	}
@@ -110,6 +110,7 @@ export default class Renderer {
 	 * @returns {() => void} a function that will cancel the animation frame request when called.
 	 */
 	loop(fn) {
+		if (isDefined(this.#animationFrameRequest)) return console.error("Already running")
 		const innerLoop = () => {
 			fn(this.info)
 			this.#animationFrameRequest = requestAnimationFrame(innerLoop)
@@ -120,6 +121,7 @@ export default class Renderer {
 	stopLoop() {
 		cancelAnimationFrame(this.#animationFrameRequest)
 		this.#animationFrameRequest = undefined
+		this.background()
 	}
 
 	/**
