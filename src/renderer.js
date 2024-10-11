@@ -42,17 +42,14 @@ export default class Renderer {
 	rectangle(options = {}) {
 		if (!options.fillColor && !options.borderColor) return
 
-		const { x: sx, y: sy } = this.#viewMatrix.scaleOf
 		const rect = {
 			...options,
 			center: this.#viewMatrix.transformPoint(options.center),
-			size: { x: options.size.x * sx, y: options.size.y * sy },
+			size: this.#viewMatrix.transformScale(options.size),
 		}
-		if (isDefined(options.rotation))
-			rect.rotation = this.#viewMatrix.transformAngle(options.rotation)
+		rect.rotation = this.#viewMatrix.transformAngle(options.rotation || 0)
 
 		this.#ctx.translate(rect.center.x, rect.center.y)
-
 		if (isDefined(rect.rotation)) this.#ctx.rotate(rect.rotation)
 		if (isDefined(rect.fillColor)) {
 			this.#ctx.fillStyle = rect.fillColor
@@ -63,6 +60,11 @@ export default class Renderer {
 			this.#ctx.lineWidth = rect.borderSize || 2.5
 			this.#ctx.strokeRect(rect.size.x * -0.5, rect.size.y * -0.5, rect.size.x, rect.size.y)
 		}
+
+		this.#ctx.fillStyle = Color.ERROR
+		this.#ctx.ellipse(0, 0, 2, 2, 0, 0, 2 * Math.PI)
+		this.#ctx.ellipse(rect.size.x / 2, rect.size.y / 2, 2, 2, 0, 0, 2 * Math.PI)
+		this.#ctx.fill("nonzero")
 
 		this.#ctx.setTransform(1, 0, 0, 1, 0, 0)
 	}
@@ -315,9 +317,9 @@ export class Camera {
 
 		const result = new ViewMatrix2D()
 		const aspectRatio = this.#scale.x / this.#scale.y
-		if (isDefined(this.#rotation)) result.rotate(this.#rotation)
 		if (isDefined(this.#scale)) result.scale(this.#scale.x / aspectRatio, this.#scale.y)
 		if (isDefined(this.#center)) result.translate(this.#center.x * aspectRatio, this.#center.y)
+		if (isDefined(this.#rotation)) result.rotate(this.#rotation)
 		this.#buf = result
 
 		return result
@@ -335,10 +337,10 @@ class ViewMatrix2D {
 	}
 
 	multiply(other) {
-		this.a = this.a * other.a + this.c * other.b
-		this.b = this.b * other.a + this.d * other.b
-		this.c = this.a * other.c + this.c * other.d
-		this.d = this.b * other.c + this.d * other.d
+		this.a = this.a * other.a + this.b * other.c
+		this.b = this.a * other.b + this.b * other.d
+		this.c = this.c * other.a + this.d * other.c
+		this.d = this.c * other.b + this.d * other.d
 		this.tx = this.a * other.tx + this.c * other.ty + this.tx
 		this.ty = this.b * other.tx + this.d * other.ty + this.ty
 	}
@@ -354,7 +356,7 @@ class ViewMatrix2D {
 	rotate(angle = 0) {
 		const cos = Math.cos(angle)
 		const sin = Math.sin(angle)
-		this.multiply(new ViewMatrix2D(cos, sin, -sin, cos, 0, 0))
+		this.multiply(new ViewMatrix2D(cos, -sin, sin, cos, 0, 0))
 	}
 
 	invert() {
@@ -378,6 +380,14 @@ class ViewMatrix2D {
 		}
 	}
 
+	transformScale({ x, y } = { x: 1, y: 1 }) {
+		console.log(this.a + this.b, this.c + this.d)
+		return {
+			x: this.a * x + this.c * y,
+			y: this.b * x + this.d * y,
+		}
+	}
+
 	transformAngle(angle = 0) {
 		return this.angle + angle
 	}
@@ -389,14 +399,6 @@ class ViewMatrix2D {
 	/** @returns {Vec2} */
 	get translation() {
 		return { x: this.tx, y: this.ty }
-	}
-
-	/** @returns {Vec2} */
-	get scaleOf() {
-		return {
-			x: Math.sqrt(this.a * this.a + this.c * this.c),
-			y: Math.sqrt(this.b * this.b + this.d * this.d),
-		}
 	}
 }
 

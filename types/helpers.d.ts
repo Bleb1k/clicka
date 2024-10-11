@@ -10,4 +10,6 @@ interface Vec2 {
 	y: number
 }
 
+type Scene = (info: RendererInfo) => void
+type Scenes = { [key: string]: Scene }
 type AsyncFunction<T> = () => Promise<T>
