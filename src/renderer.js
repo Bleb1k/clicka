@@ -256,6 +256,8 @@ export class Camera {
 	#scale
 	/** @type {Vec2} */
 	#center
+	/** @type {ViewMatrix2D} */
+	#buf
 
 	/** @param {CameraOptions} options */
 	constructor(options = {}) {
@@ -266,18 +268,21 @@ export class Camera {
 
 	/** @param {number} value */
 	rotate(value) {
+		if (value !== 0) this.#buf = null
 		this.#rotation += value
 		return this
 	}
 
 	/** @param {number} value */
 	setRotation(value) {
+		if (value !== this.#rotation) this.#buf = null
 		this.#rotation = value
 		return this
 	} /* */
 
 	/** @param {Vec2} value */
 	scale(value) {
+		if (value.x !== 1 && value.y !== 1) this.#buf = null
 		this.#scale.x *= value.x
 		this.#scale.y *= value.y
 		return this
@@ -285,12 +290,14 @@ export class Camera {
 
 	/** @param {Vec2} value */
 	setScale(value) {
+		if (value !== this.#scale) this.#buf = null
 		this.#scale = value
 		return this
 	}
 
 	/** @param {Vec2} value */
 	move(value) {
+		if (value.x !== 0 || value.y !== 0) this.#buf = null
 		this.#center.x += value.x
 		this.#center.y += value.y
 		return this
@@ -298,16 +305,21 @@ export class Camera {
 
 	/** @param {Vec2} value */
 	setCenter(value) {
+		if (value !== this.#center) this.#buf = null
 		this.#center = value
 		return this
 	}
 
 	toViewMatrix2D() {
+		if (isDefined(this.#buf)) return this.#buf
+
 		const result = new ViewMatrix2D()
 		const aspectRatio = this.#scale.x / this.#scale.y
 		if (isDefined(this.#rotation)) result.rotate(this.#rotation)
 		if (isDefined(this.#scale)) result.scale(this.#scale.x / aspectRatio, this.#scale.y)
 		if (isDefined(this.#center)) result.translate(this.#center.x * aspectRatio, this.#center.y)
+		this.#buf = result
+
 		return result
 	}
 }
