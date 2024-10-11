@@ -7,8 +7,21 @@ export const iota = (() => {
 
 export const $ = document.querySelector.bind(document)
 
+/** @type {(fn: number) => void} */
+export const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+/** @type {(fn: AsyncFunction<void>) => void} */
+export const spawn = fn => new Promise(async resolve => (await fn(), resolve()))
+
 export function isDefined(val) {
 	return val !== undefined && val !== null
+}
+
+/**
+ * @param {Segment | unknown} val
+ * @returns {boolean}
+ */
+export function isSegment(val) {
+	return isDefined(val) && val.from !== undefined && val.to !== undefined
 }
 
 export function pipe(...fns) {

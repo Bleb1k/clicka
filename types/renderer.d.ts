@@ -53,9 +53,14 @@ interface Line {
 	width?: number
 }
 
+interface Segment {
+	from: Vec2
+	to: Vec2
+}
+
 interface Path {
 	type: "path"
-	points: Vec2[]
+	points: Vec2[] | Segment[]
 	color: ColorStyle
 	width?: number
 }

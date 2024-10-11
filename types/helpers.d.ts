@@ -9,3 +9,5 @@ interface Vec2 {
 	x: number
 	y: number
 }
+
+type AsyncFunction<T> = () => Promise<T>

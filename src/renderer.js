@@ -1,6 +1,7 @@
 /// <reference types="../types/renderer.d.ts" />
 
-import { isDefined } from "./helpers.js"
+import { warning } from "./debug.js"
+import { isDefined, isSegment } from "./helpers.js"
 
 export default class Renderer {
 	/** @type {HTMLElement} */
@@ -9,12 +10,16 @@ export default class Renderer {
 	#ctx
 
 	/** @type {number} */
-	#time = Date.now()
+	#time = 0
 	/**
 	 * Request ID of the current animation frame.
-	 * @type {number}
+	 * @type {?number}
 	 */
 	#animationFrameRequest
+	/** @type {ViewMatrix2D} */
+	#viewMatrix = new ViewMatrix2D()
+	/** @type {?ViewMatrix2D} */
+	#lastViewMatrix
 
 	/** @param {RendererOptions} options */
 	constructor(options = {}) {
@@ -32,27 +37,26 @@ export default class Renderer {
 	rectangle(options = {}) {
 		if (!options.fillColor && !options.borderColor) return
 
-		this.#ctx.translate(options.center.x, options.center.y)
-
-		if (isDefined(options.rotation)) this.#ctx.rotate(options.rotation)
-		if (isDefined(options.fillColor)) {
-			this.#ctx.fillStyle = options.fillColor
-			this.#ctx.fillRect(
-				options.size.x * -0.5,
-				options.size.y * -0.5,
-				options.size.x,
-				options.size.y
-			)
+		const { x: sx, y: sy } = this.#viewMatrix.scaleOf
+		const rect = {
+			...options,
+			center: this.#viewMatrix.transformPoint(options.center),
+			size: { x: options.size.x * sx, y: options.size.y * sy },
 		}
-		if (isDefined(options.borderColor)) {
-			this.#ctx.strokeStyle = options.borderColor
-			this.#ctx.lineWidth = options.borderSize || 2.5
-			this.#ctx.strokeRect(
-				options.size.x * -0.5,
-				options.size.y * -0.5,
-				options.size.x,
-				options.size.y
-			)
+		if (isDefined(options.rotation))
+			rect.rotation = this.#viewMatrix.transformAngle(options.rotation)
+
+		this.#ctx.translate(rect.center.x, rect.center.y)
+
+		if (isDefined(rect.rotation)) this.#ctx.rotate(rect.rotation)
+		if (isDefined(rect.fillColor)) {
+			this.#ctx.fillStyle = rect.fillColor
+			this.#ctx.fillRect(rect.size.x * -0.5, rect.size.y * -0.5, rect.size.x, rect.size.y)
+		}
+		if (isDefined(rect.borderColor)) {
+			this.#ctx.strokeStyle = rect.borderColor
+			this.#ctx.lineWidth = rect.borderSize || 2.5
+			this.#ctx.strokeRect(rect.size.x * -0.5, rect.size.y * -0.5, rect.size.x, rect.size.y)
 		}
 
 		this.#ctx.setTransform(1, 0, 0, 1, 0, 0)
@@ -66,22 +70,43 @@ export default class Renderer {
 		})
 	}
 
-	/** @param {Path} options */
+	/** @param {Path} options @todo Add camera support */
 	path(options = {}) {
-		if (!options.points) return
+		if (!isDefined(options.points)) return
 
 		this.#ctx.strokeStyle = options.color
 		this.#ctx.lineWidth = options.width || 2.5
 
-		this.#ctx.beginPath()
-		this.#ctx.moveTo(options.points[0].x, options.points[0].y)
-		for (
-			let i = 1, point = options.points[1];
-			i < options.points.length;
-			i++, point = options.points[i]
-		)
-			this.#ctx.lineTo(point.x, point.y)
+		this.#startPath()
+		if (isSegment(options.points[0]))
+			for (const line of options.points) {
+				this.#pathFrom(line.from)
+				this.#pathTo(line.to)
+			}
+		else {
+			const [from, ...rest] = options.points
+			this.#pathFrom(from)
+			for (const to of rest) this.#pathTo(to)
+		}
 		this.#ctx.stroke()
+	}
+
+	/**
+	 * Starts a new path.\
+	 * Call ctx.stroke() to complete the path.
+	 */
+	#startPath() {
+		this.#ctx.beginPath()
+	}
+	/** @param Vec2 */
+	#pathFrom(vec) {
+		const newVec = this.#viewMatrix.transformPoint(vec)
+		this.#ctx.moveTo(newVec.x, newVec.y)
+	}
+	/** @param Vec2 */
+	#pathTo(vec) {
+		const newVec = this.#viewMatrix.transformPoint(vec)
+		this.#ctx.lineTo(newVec.x, newVec.y)
 	}
 
 	/** @param {Line} options */
@@ -110,7 +135,8 @@ export default class Renderer {
 	textStyle(options = {}) {
 		this.#ctx.fillStyle = options.color
 
-		if (isDefined(options.size)) this.#ctx.font = `${options.size}pt ${options.font}`
+		if (isDefined(options.size) && isDefined(options.font))
+			this.#ctx.font = `${options.size}pt ${options.font}`
 		else if (isDefined(options.font))
 			this.#ctx.font = this.#ctx.font.replace(/(?<value>[a-zA-Z\-\_]+$)/, options.font)
 		else if (isDefined(options.size))
@@ -119,6 +145,7 @@ export default class Renderer {
 
 	/**
 	 * Sets the text color of the renderer, and prepares the canvas context for the next call to textString.
+	 * @TODO Decide if this should implement the camera support
 	 * @param {Object} options
 	 * @param {string} options.text
 	 * @param {Vec2} options.pivot
@@ -143,8 +170,9 @@ export default class Renderer {
 	 * @returns {() => void} a function that will cancel the animation frame request when called.
 	 */
 	loop(fn) {
-		if (isDefined(this.#animationFrameRequest)) return console.error("Already running")
+		if (isDefined(this.#animationFrameRequest)) return warning("Already running")
 		const innerLoop = () => {
+			this.#time = Math.min(-this.#time + (this.#time = Date.now() / 1000), 0.1)
 			fn(this.info)
 			this.#animationFrameRequest = requestAnimationFrame(innerLoop)
 		}
@@ -153,7 +181,7 @@ export default class Renderer {
 
 	stopLoop() {
 		cancelAnimationFrame(this.#animationFrameRequest)
-		this.#animationFrameRequest = undefined
+		this.#animationFrameRequest = null
 		this.background()
 	}
 
@@ -193,16 +221,150 @@ export default class Renderer {
 		return {
 			width: this.#ctx.canvas.width,
 			height: this.#ctx.canvas.height,
-			dt: Math.min(-this.#time + (this.#time = Date.now() / 1000), 1),
+			dt: this.#time,
+		}
+	}
+
+	/** @param {ViewMatrix2D} arg */
+	set camera(arg) {
+		this.#viewMatrix = arg
+	}
+
+	/** Resets camera to default. */
+	defaultCamera() {
+		this.#lastViewMatrix = this.#viewMatrix
+		this.#viewMatrix = new ViewMatrix2D()
+	}
+
+	/** Sets camera to last used non-default camera. */
+	resetCamera() {
+		if (!isDefined(this.#lastViewMatrix)) return
+		this.#viewMatrix = this.#lastViewMatrix
+		this.#lastViewMatrix = null
+	}
+}
+
+export class Camera {
+	/** @type {number} */
+	#rotation
+	/** @type {Vec2} */
+	#scale
+	/** @type {Vec2} */
+	#center
+	/** @type {ViewMatrix2D} */
+	#viewMatrix
+
+	constructor() {
+		this.#viewMatrix = new ViewMatrix2D()
+		this.#rotation = 0
+		this.#scale = { x: 1, y: 1 }
+		this.#center = { x: 0, y: 0 }
+	}
+
+	/** @param {number} value */
+	rotation(value) {
+		this.#viewMatrix.rotate(value - this.#rotation)
+		this.#rotation = value
+		return this
+	}
+
+	/** @param {Vec2} value */
+	scale(value) {
+		const prevAspectRatio = this.#scale.x / this.#scale.y
+		const newAspectRatio = (prevAspectRatio * value.x) / value.y
+		this.#viewMatrix.scale(value.x / (this.#scale.x * newAspectRatio), value.y / this.#scale.y)
+		this.#scale = value
+		return this
+	}
+
+	/** @param {Vec2} value */
+	setPos(value) {
+		this.#viewMatrix.translate(value.x - this.#center.x, value.y - this.#center.y)
+		this.#center = value
+		return this
+	}
+
+	viewMatrix2D() {
+		return this.#viewMatrix
+	}
+}
+
+class ViewMatrix2D {
+	constructor(a = 1, b = 0, c = 0, d = 1, tx = 0, ty = 0) {
+		this.a = a
+		this.b = b
+		this.c = c
+		this.d = d
+		this.tx = tx
+		this.ty = ty
+	}
+
+	multiply(other) {
+		this.a = this.a * other.a + this.c * other.b
+		this.b = this.b * other.a + this.d * other.b
+		this.c = this.a * other.c + this.c * other.d
+		this.d = this.b * other.c + this.d * other.d
+		this.tx = this.a * other.tx + this.c * other.ty + this.tx
+		this.ty = this.b * other.tx + this.d * other.ty + this.ty
+	}
+
+	translate(tx, ty) {
+		this.multiply(new ViewMatrix2D(1, 0, 0, 1, tx, ty))
+	}
+
+	scale(sx, sy) {
+		this.multiply(new ViewMatrix2D(sx, 0, 0, sy, 0, 0))
+	}
+
+	rotate(angle = 0) {
+		const cos = Math.cos(angle)
+		const sin = Math.sin(angle)
+		this.multiply(new ViewMatrix2D(cos, sin, -sin, cos, 0, 0))
+	}
+
+	invert() {
+		const determinant = this.a * this.d - this.b * this.c
+		if (determinant === 0) {
+			throw new Error("Matrix is not invertible")
+		}
+		this.a = this.d / determinant
+		this.b = -this.b / determinant
+		this.c = -this.c / determinant
+		this.d = this.a / determinant
+		this.tx = (this.c * this.ty - this.d * this.tx) / determinant
+		this.ty = (this.b * this.tx - this.a * this.ty) / determinant
+	}
+
+	/** @param {Vec2} @returns {Vec2} */
+	transformPoint({ x, y } = { x: 0, y: 0 }) {
+		return {
+			x: this.a * x + this.c * y + this.tx,
+			y: this.b * x + this.d * y + this.ty,
+		}
+	}
+
+	transformAngle(angle = 0) {
+		return this.angle + angle
+	}
+
+	get angle() {
+		return Math.atan2(this.b, this.a)
+	}
+
+	/** @returns {Vec2} */
+	get translation() {
+		return { x: this.tx, y: this.ty }
+	}
+
+	/** @returns {Vec2} */
+	get scaleOf() {
+		return {
+			x: Math.sqrt(this.a * this.a + this.c * this.c),
+			y: Math.sqrt(this.b * this.b + this.d * this.d),
 		}
 	}
 }
 
-/**
- * Please use cautiously, string manipulation in js is expensive\
- * Prefer using CONSTANT or predefined colors if possible\
- * Or create your own css color string manually
- */
 export class Color {
 	/**
 	 * @arg {number} num
