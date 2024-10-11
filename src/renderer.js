@@ -10,7 +10,12 @@ export default class Renderer {
 	#ctx
 
 	/** @type {number} */
-	#time = 0
+	#time = Date.now() / 1000
+	/**
+	 * @TODO extract to a shared class
+	 * @type {number}
+	 */
+	#deltaTime = 0
 	/**
 	 * Request ID of the current animation frame.
 	 * @type {?number}
@@ -172,7 +177,7 @@ export default class Renderer {
 	loop(fn) {
 		if (isDefined(this.#animationFrameRequest)) return warning("Already running")
 		const innerLoop = () => {
-			this.#time = Math.min(-this.#time + (this.#time = Date.now() / 1000), 0.1)
+			this.#deltaTime = Math.min(-this.#time + (this.#time = Date.now() / 1000), 0.1)
 			fn(this.info)
 			this.#animationFrameRequest = requestAnimationFrame(innerLoop)
 		}
@@ -221,7 +226,7 @@ export default class Renderer {
 		return {
 			width: this.#ctx.canvas.width,
 			height: this.#ctx.canvas.height,
-			dt: this.#time,
+			dt: this.#deltaTime,
 		}
 	}
 
@@ -251,41 +256,59 @@ export class Camera {
 	#scale
 	/** @type {Vec2} */
 	#center
-	/** @type {ViewMatrix2D} */
-	#viewMatrix
 
-	constructor() {
-		this.#viewMatrix = new ViewMatrix2D()
-		this.#rotation = 0
-		this.#scale = { x: 1, y: 1 }
-		this.#center = { x: 0, y: 0 }
+	/** @param {CameraOptions} options */
+	constructor(options = {}) {
+		this.#rotation = options.rotation || 0
+		this.#scale = options.scale || { x: 1, y: 1 }
+		this.#center = options.center || { x: 0, y: 0 }
 	}
 
 	/** @param {number} value */
-	rotation(value) {
-		this.#viewMatrix.rotate(value - this.#rotation)
+	rotate(value) {
+		this.#rotation += value
+		return this
+	}
+
+	/** @param {number} value */
+	setRotation(value) {
 		this.#rotation = value
+		return this
+	} /* */
+
+	/** @param {Vec2} value */
+	scale(value) {
+		this.#scale.x *= value.x
+		this.#scale.y *= value.y
 		return this
 	}
 
 	/** @param {Vec2} value */
-	scale(value) {
-		const prevAspectRatio = this.#scale.x / this.#scale.y
-		const newAspectRatio = (prevAspectRatio * value.x) / value.y
-		this.#viewMatrix.scale(value.x / (this.#scale.x * newAspectRatio), value.y / this.#scale.y)
+	setScale(value) {
 		this.#scale = value
 		return this
 	}
 
 	/** @param {Vec2} value */
-	setPos(value) {
-		this.#viewMatrix.translate(value.x - this.#center.x, value.y - this.#center.y)
+	move(value) {
+		this.#center.x += value.x
+		this.#center.y += value.y
+		return this
+	}
+
+	/** @param {Vec2} value */
+	setCenter(value) {
 		this.#center = value
 		return this
 	}
 
-	viewMatrix2D() {
-		return this.#viewMatrix
+	toViewMatrix2D() {
+		const result = new ViewMatrix2D()
+		const aspectRatio = this.#scale.x / this.#scale.y
+		if (isDefined(this.#rotation)) result.rotate(this.#rotation)
+		if (isDefined(this.#scale)) result.scale(this.#scale.x / aspectRatio, this.#scale.y)
+		if (isDefined(this.#center)) result.translate(this.#center.x * aspectRatio, this.#center.y)
+		return result
 	}
 }
 

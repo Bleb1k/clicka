@@ -37,14 +37,13 @@ const state = {
 				{ x: 0.5, y: -0.5 },
 			],
 			color: Color.BLUE_VIOLET,
-			width: 0.05,
+			width: 0,
 		},
 	],
 	scenes: {
 		test: info => {
 			render.background()
 
-			// render.camera = new ViewMatrix2D(0, 0, 0, 0, 0, 0)
 			for (const shape of state.renderObjects)
 				switch (shape.type) {
 					case "rectangle":
@@ -64,7 +63,7 @@ const state = {
 			renderFpsBuffer(render)
 		},
 	},
-	camera: new Camera().setPos({ x: 0, y: 0 }),
+	camera: new Camera().move({ x: 0.5, y: 0.5 }),
 }
 
 document.fonts.add(new FontFace("test", "url(assets/F77MinecraftRegular.woff)"))
@@ -81,8 +80,8 @@ const render = new Renderer({
 	},
 })
 
-state.camera.scale({ x: render.info.width, y: render.info.height })
-render.camera = state.camera.viewMatrix2D()
+state.camera.setScale({ x: render.info.width, y: render.info.height })
+render.camera = state.camera.toViewMatrix2D()
 
 render.textStyle({ font: "test", size: 12, color: Color.BLACK })
 

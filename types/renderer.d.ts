@@ -5,10 +5,16 @@ interface RendererOptions {
 }
 
 /** Resizes the canvas to the given size, and optionally the parent element to the given size */
-type ResizeOptions = {
+interface ResizeOptions {
 	withTarget: boolean
 	pivot: Vec2
 	size: Vec2
+}
+
+interface CameraOptions {
+	rotation: number
+	scale: Vec2
+	center: Vec2
 }
 
 interface RendererInfo {
